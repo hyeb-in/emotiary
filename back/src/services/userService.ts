@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { generateRandomPassowrd } from '../utils/password';
+import { generateRandomPassword } from '../utils/password';
 import bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
 import { userResponseDTO } from '../dtos/userDTO';
@@ -267,7 +267,7 @@ export const forgotUserPassword = async (email: string) => {
   }
 
   // 임시 비밀번호 생성
-  const tempPassword = generateRandomPassowrd();
+  const tempPassword = generateRandomPassword();
   const saltRounds = 10;
 
   // 임시 비밀번호를 해시하여 저장
