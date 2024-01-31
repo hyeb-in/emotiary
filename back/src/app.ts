@@ -3,13 +3,14 @@ import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import swaggerFile from './swagger/swagger-output.json';
 import bodyParser from 'body-parser';
-import userAuthRouter from './routes/userRouter';
+import userRouter from './routes/userRouter';
 import passport from 'passport';
 import diaryRouter from './routes/diaryRouter';
 import favoriteRouter from './routes/favoriteRouter';
 import friendRouter from './routes/friendRouter';
 import commentRouter from './routes/commentRouter';
 import roomRouter from './routes/roomRouter';
+import authRouter from './routes/authRouter';
 import { jwtStrategy, localStrategy, googleStrategy } from './config/passport';
 import { Logger } from './config/logger';
 import { errorMiddleware } from './middlewares/errorMiddleware';
@@ -65,7 +66,8 @@ app.get('/', (req: Request, res: Response) => {
 
 const apiRouter = express.Router();
 
-apiRouter.use('/users', userAuthRouter);
+apiRouter.use('/auth', authRouter);
+apiRouter.use('/users', userRouter);
 apiRouter.use('/friend', friendRouter);
 apiRouter.use('/diary', diaryRouter);
 apiRouter.use('/favorites', favoriteRouter);

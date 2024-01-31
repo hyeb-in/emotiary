@@ -15,7 +15,7 @@ import {
   emailLinked,
   verifyToken,
   registerUser,
-} from '../services/authService';
+} from '../services/userService';
 import { generateAccessToken, verifyRefreshToken } from '../utils/tokenUtils';
 import { IRequest } from 'types/request';
 import { userValidateDTO } from '../dtos/userDTO';
