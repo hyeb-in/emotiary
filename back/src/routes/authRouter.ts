@@ -1,10 +1,11 @@
+import { signup } from '../controllers/authController';
 import { Router } from 'express';
-import { wrapAsyncController } from 'utils/wrapper';
+import { localAuthentication } from '../middlewares/authenticateLocal';
 
 const authRouter = Router();
 
-// authRouter.post('/signup', wrapAsyncController());
+authRouter.post('/signup', signup);
 
-authRouter.post('signin');
+authRouter.post('/signin', localAuthentication);
 
 export default authRouter;

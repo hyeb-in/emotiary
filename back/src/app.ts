@@ -11,7 +11,7 @@ import friendRouter from './routes/friendRouter';
 import commentRouter from './routes/commentRouter';
 import roomRouter from './routes/roomRouter';
 import authRouter from './routes/authRouter';
-import { jwtStrategy, localStrategy, googleStrategy } from './config/passport';
+import { googleStrategy } from './config/passport';
 import { Logger } from './config/logger';
 import { errorMiddleware } from './middlewares/errorMiddleware';
 import { sendAlarm } from './utils/alarm';
@@ -20,6 +20,8 @@ import { chat } from './utils/chat';
 import { Server as SocketIoServer } from 'socket.io';
 import { CronJob } from 'cron';
 import { updateAudioUrlsPeriodically } from './utils/music';
+import { localStrategy } from './config/passport/localStrategy';
+import { jwtStrategy } from './config/passport/jwtStrategy';
 
 const app: Express & { io?: any } = express();
 const server = http.createServer(app);
@@ -36,12 +38,11 @@ sendAlarm();
 
 app.use(passport.initialize());
 
-const localStrategyInstance = localStrategy;
-const jwtStrategyInstance = jwtStrategy;
 const googleStrategyInstance = googleStrategy;
 
-passport.use('local', localStrategyInstance);
-passport.use('jwt', jwtStrategyInstance);
+//passport 전략들
+localStrategy();
+jwtStrategy();
 passport.use('google', googleStrategyInstance);
 
 app.use(express.json());
