@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import passport from 'passport';
-import { IRequest } from 'types/request';
-import { IUser } from 'types/user';
+import { IRequest } from '../types/request';
+import { IUser } from '../types/user';
 
 export const jwtAuthentication = async (
   req: IRequest,
@@ -17,8 +17,8 @@ export const jwtAuthentication = async (
           console.log(error);
           next(error);
         }
-        if (info ) {
-          if(info.name === 'TokenExpiredError'){
+        if (info) {
+          if (info.name === 'TokenExpiredError') {
             console.log(info);
             res.status(401).json({ expired: true });
           }
