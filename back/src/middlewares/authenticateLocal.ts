@@ -1,12 +1,13 @@
 import passport from 'passport';
 import { Response, NextFunction } from 'express';
-import { IUser } from 'types/user';
+import { IUser } from '../types/user';
 import {
   generateAccessToken,
   generateRefreshToken,
   storeRefreshTokenInDatabase,
 } from '../utils/tokenUtils';
-import { IRequest } from 'types/request';
+import { IRequest } from '../types/request';
+import { generateError } from '../utils/errorGenerator';
 
 export const localAuthentication = (
   req: IRequest,
@@ -19,28 +20,34 @@ export const localAuthentication = (
       { session: false },
       async (error: Error, user: IUser, info: any) => {
         if (error) {
-          console.log(error);
-          next(error);
+          const err = generateError(500, error.message);
+          next(err);
         }
 
         if (info) {
-          console.log(info);
-          next(info);
+          const err = generateError(500, info.message);
+          next(err);
         }
 
         if (user) {
+          //TODO 언제 소멸하는지 필요한가?
+          //TODO refresh Token은 레디스
           const { token, expiresAt } = generateAccessToken(user);
           const refreshToken = generateRefreshToken(user);
-          await storeRefreshTokenInDatabase(user.id, refreshToken);
 
           req.token = token;
           req.user = user;
           req.refreshTokens = [refreshToken];
           req.expiresAt = expiresAt;
-          return next();
+          const response = {
+            accessToken: token,
+            refreshToken,
+            user,
+          };
+          res.status(200).json(response);
         }
       },
-    )(req, res, next);
+    )(req, res);
   } catch (error) {
     next(error);
   }
