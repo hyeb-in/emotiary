@@ -1,6 +1,26 @@
 import jwt from 'jsonwebtoken';
-import jwtSecret from '../config/jwtSecret';
+import { JWT_SECRET_KEY } from '../config/jwtSecret';
 import { prisma } from '../../prisma/prismaClient';
+import { IUser } from '../types/user';
+import { generateError } from './errorGenerator';
+import { setValue } from '../db/redisConnection';
+
+export const publishToken = async (user: IUser) => {
+  try {
+    const { id } = user;
+    const payload = { userId: id };
+
+    const accessToken = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '30s' });
+    const refreshToken = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '1d' });
+    console.log(refreshToken);
+    await setValue(id, refreshToken);
+
+    return { accessToken, refreshToken };
+  } catch (e) {
+    //TODO 에러 코드 수정
+    throw generateError(500, e.message);
+  }
+};
 
 // Access Token 생성 함수
 export const generateAccessToken = (user: {
@@ -9,7 +29,7 @@ export const generateAccessToken = (user: {
   email: string;
 }): { token: string; expiresAt: number } => {
   // 사용자 ID를 기반으로 새로운 Access Token 생성
-  const accessToken = jwt.sign({ id: user.id }, jwtSecret, {
+  const accessToken = jwt.sign({ id: user.id }, JWT_SECRET_KEY, {
     expiresIn: '1d',
   });
   const expirationTime = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
@@ -24,7 +44,7 @@ export const generateRefreshToken = (user: {
   email: string;
 }): string => {
   // 사용자 ID를 기반으로 새로운 Refresh Token 생성
-  const refreshToken = jwt.sign({ id: user.id }, jwtSecret, {
+  const refreshToken = jwt.sign({ id: user.id }, JWT_SECRET_KEY, {
     expiresIn: '30d', // 예: 30일
   });
   return refreshToken;
