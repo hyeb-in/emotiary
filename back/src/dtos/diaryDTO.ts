@@ -10,7 +10,7 @@ import {
 import { Exclude, Expose, Type } from 'class-transformer';
 import { diaryFileUpload } from '../types/diary';
 import 'reflect-metadata';
-import { fileUpload } from 'types/user';
+import { fileUpload } from '../types/user';
 
 export class ApiResponseDTO {
   data: any;

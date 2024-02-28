@@ -1,7 +1,7 @@
 import { NextFunction, Response } from 'express';
 import { prisma } from '../../prisma/prismaClient';
 import { createdGPTComment } from '../services/commentService';
-import { IRequest } from 'types/request';
+import { IRequest } from '../types/request';
 import { callChatGPT } from '../utils/chatGPT';
 
 export const updatedGPTComment = async (

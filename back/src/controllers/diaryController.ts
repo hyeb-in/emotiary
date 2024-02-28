@@ -15,7 +15,7 @@ import {
   verifyDiaryAuthor,
   getEmotionOftheMonthService,
 } from '../services/diaryService';
-import { IRequest } from 'types/request';
+import { IRequest } from '../types/request';
 import { plainToClass } from 'class-transformer';
 import { DiaryValidateDTO } from '../dtos/diaryDTO';
 import { validate } from 'class-validator';

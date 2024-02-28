@@ -2,7 +2,7 @@ import { NextFunction, Response, Request } from 'express';
 import { prisma } from '../../prisma/prismaClient';
 import { getOneDiaryService } from '../services/diaryService';
 import { callChatGPT } from '../utils/chatGPT';
-import { IRequest } from 'types/request';
+import { IRequest } from '../types/request';
 
 export const createdGPTCommentMiddleware = async (
   req: IRequest,

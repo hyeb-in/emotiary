@@ -7,7 +7,7 @@ import {
   deletedComment,
 } from '../services/commentService';
 import { validate } from 'class-validator';
-import { IRequest } from 'types/request';
+import { IRequest } from '../types/request';
 
 // 댓글 작성
 export const createComment = async (

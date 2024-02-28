@@ -3,11 +3,9 @@ import {
   userLogin,
   verifyEmail,
   emailVerified,
-  userRegister,
   getMyInfo,
   getAllUser,
   getMyFriend,
-  getUserId,
   updateUser,
   deleteUser,
   forgotPassword,
@@ -19,6 +17,7 @@ import {
   testEmail,
   searchKeyword,
   expire,
+  getUser,
 } from '../controllers/userController';
 import { localAuthentication } from '../middlewares/authenticateLocal';
 import { jwtAuthentication } from '../middlewares/authenticateJwt';
@@ -26,8 +25,6 @@ import { fileUpload } from '../middlewares/uploadMiddleware';
 import { wrapAsyncController } from '../utils/wrapper';
 import passport from 'passport';
 const userRouter = Router();
-// 회원가입
-userRouter.post('/register', wrapAsyncController(userRegister));
 
 // 로그인
 userRouter.post('/login', localAuthentication, wrapAsyncController(userLogin));
@@ -72,7 +69,7 @@ userRouter.get('/tokenExpire', jwtAuthentication, wrapAsyncController(expire));
 // 특정 유저 정보, 유저 수정, 유저 탈퇴
 userRouter
   .route('/:userId')
-  .get(jwtAuthentication, wrapAsyncController(getUserId))
+  .get(jwtAuthentication, wrapAsyncController(getUser))
   .put(jwtAuthentication, fileUpload, wrapAsyncController(updateUser))
   .delete(jwtAuthentication, wrapAsyncController(deleteUser));
 
@@ -90,21 +87,21 @@ userRouter.post(
 userRouter.post('/refresh-token', wrapAsyncController(refresh));
 
 // 소셜 로그인
-userRouter.get(
-  '/google',
-  passport.authenticate('google', {
-    scope: [
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
-    ],
-  }),
-);
+// userRouter.get(
+//   '/google',
+//   passport.authenticate('google', {
+//     scope: [
+//       'https://www.googleapis.com/auth/userinfo.email',
+//       'https://www.googleapis.com/auth/userinfo.profile',
+//     ],
+//   }),
+// );
 
 // 소셜 로그인 리디렉션
-userRouter.get(
-  '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
-  loginCallback,
-);
+// userRouter.get(
+//   '/google/callback',
+//   passport.authenticate('google', { failureRedirect: '/' }),
+//   loginCallback,
+// );
 
 export default userRouter;

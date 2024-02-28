@@ -8,7 +8,7 @@ import { generateError } from '../utils/errorGenerator';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { IRequest } from 'types/request';
+import { IRequest } from '../types/request';
 
 const handleFileUpload = async (
   req: IRequest,

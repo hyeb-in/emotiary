@@ -10,7 +10,7 @@ import {
   getMyFriends,
   deleteFriend,
 } from '../services/friendService';
-import { IRequest } from 'types/request';
+import { IRequest } from '../types/request';
 
 /** @description 친구 요청 */
 /** @Tag(name = "book service", description = "the book API with description tag annotation") */
