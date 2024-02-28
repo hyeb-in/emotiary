@@ -36,7 +36,8 @@ export const getUserById = async (id: string): Promise<UserRow> => {
 
 export const getUserByEmail = async (email: string): Promise<UserRow> => {
   const [rows, fields] = (await sql.execute(
-    `SELECT * FROM user WHERE email = '${email}'`,
+    `SELECT * FROM user WHERE email = ?`,
+    [email],
   )) as [UserRow[], FieldPacket[]];
 
   return rows[0];

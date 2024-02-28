@@ -14,13 +14,12 @@ export const jwtAuthentication = async (
       { session: false },
       (error: Error, user: IUser, info: any) => {
         if (error) {
-          console.log(error);
           next(error);
         }
         if (info) {
+          //TODO token 처리 경우의 수 추가
           if (info.name === 'TokenExpiredError') {
-            console.log(info);
-            res.status(401).json({ expired: true });
+            return res.status(401).json({ expired: true });
           }
         }
         req.user = user;

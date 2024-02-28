@@ -4,6 +4,7 @@ import { IUser } from '../types/user';
 import {
   generateAccessToken,
   generateRefreshToken,
+  publishToken,
   storeRefreshTokenInDatabase,
 } from '../utils/tokenUtils';
 import { IRequest } from '../types/request';
@@ -30,24 +31,30 @@ export const localAuthentication = (
         }
 
         if (user) {
-          //TODO 언제 소멸하는지 필요한가?
-          //TODO refresh Token은 레디스
-          const { token, expiresAt } = generateAccessToken(user);
-          const refreshToken = generateRefreshToken(user);
-
-          req.token = token;
+          const { accessToken, refreshToken } = await publishToken(user);
+          req.accessToken = accessToken;
           req.user = user;
-          req.refreshTokens = [refreshToken];
-          req.expiresAt = expiresAt;
-          const response = {
-            accessToken: token,
-            refreshToken,
-            user,
-          };
-          res.status(200).json(response);
+          req.refreshToken = refreshToken;
+
+          //   const { token, expiresAt } = generateAccessToken(user);
+          //   const reh freshToken = generateRefreshToken(user);
+          //   await storeRefreshTokenInDatabase(user.id, refreshToken);
+
+          //   req.token = token;
+          //   req.user = user;
+          //   req.refreshTokens = [refreshToken];
+          //   req.expiresAt = expiresAt;
+          //   const response = {
+          //     accessToken: token,
+          //     refreshToken,
+          //     user,
+          //   };
+          //   res.status(200).json(response);
+          // }
         }
+        next();
       },
-    )(req, res);
+    )(req, res, next);
   } catch (error) {
     next(error);
   }

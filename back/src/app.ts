@@ -27,7 +27,8 @@ const app: Express & { io?: any } = express();
 const server = http.createServer(app);
 app.use(
   cors({
-    origin: '*',
+    //TODO 나중에 변경
+    origin: 'http://localhost:3000',
     credentials: true,
   }),
 );
@@ -43,7 +44,7 @@ const googleStrategyInstance = googleStrategy;
 //passport 전략들
 localStrategy();
 jwtStrategy();
-passport.use('google', googleStrategyInstance);
+// passport.use('google', googleStrategyInstance);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -4,8 +4,8 @@ import { Request } from 'express';
 
 export interface IRequest extends Request {
   user: IUser | null;
-  token: string;
-  refreshTokens: string[];
+  accessToken: string;
+  refreshToken: string;
   expiresAt: number;
   inputAI: inputAI;
 }

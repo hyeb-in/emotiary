@@ -10,36 +10,13 @@ import { emailToken, sendEmail } from '../utils/email';
 import { emptyApiResponseDTO } from '../utils/emptyResult';
 import { getMyWholeFriends } from './friendService';
 import { prisma } from '../../prisma/prismaClient';
-
-export const createUser = async (inputData: Prisma.UserCreateInput) => {
-  const { username, password, email } = inputData;
-
-  // 비밀번호를 해시하여 저장 (안전한 비밀번호 저장)
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // 사용자 생성 및 저장
-  const user = await prisma.user.create({
-    data: { username, password: hashedPassword, email },
-  });
-
-  const UserResponseDTO = plainToClass(userResponseDTO, user, {
-    excludeExtraneousValues: true,
-  });
-
-  const response = successApiResponseDTO(UserResponseDTO);
-  return response;
-};
+import { getUserById } from '../repositories/userRepository';
+import { generateError } from '../utils/errorGenerator';
 
 export const myInfo = async (userId: string) => {
   // 사용자 ID를 기반으로 내 정보 조회
-  const myInfo = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    include: {
-      profileImage: true,
-    },
-  });
+  const myInfo = await getUserById(userId);
+
   const UserResponseDTO = plainToClass(userResponseDTO, myInfo, {
     excludeExtraneousValues: true,
   });
@@ -167,18 +144,16 @@ export const getMyFriends = async (
   return response;
 };
 
-export const getUserInfo = async (userId: string) => {
+export const getUserService = async (userId: string) => {
   // 사용자 ID를 기반으로 사용자 정보 조회
-  const userInfo = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    include: {
-      profileImage: true,
-    },
-  });
-  const response = successApiResponseDTO(userInfo);
-  return response;
+  const user = await getUserById(userId);
+
+  if (!user) throw generateError(404, '유저가 존재하지 않습니다.');
+
+  return user;
+  //TODO response 규정 맞추기
+  // const response = successApiResponseDTO(userInfo);
+  // return response;
 };
 
 export const logout = async (userId: string) => {

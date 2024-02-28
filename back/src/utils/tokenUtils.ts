@@ -12,7 +12,7 @@ export const publishToken = async (user: IUser) => {
 
     const accessToken = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '30s' });
     const refreshToken = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '1d' });
-    console.log(refreshToken);
+
     await setValue(id, refreshToken);
 
     return { accessToken, refreshToken };

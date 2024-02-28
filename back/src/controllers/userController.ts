@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
 import {
-  createUser,
   myInfo,
   getAllUsers,
   getMyFriends,
-  getUserInfo,
   logout,
   updateUserService,
   deleteUserService,
@@ -15,9 +13,9 @@ import {
   emailLinked,
   verifyToken,
   registerUser,
+  getUserService,
 } from '../services/userService';
 import { generateAccessToken, verifyRefreshToken } from '../utils/tokenUtils';
-import { IRequest } from 'types/request';
 import { userValidateDTO } from '../dtos/userDTO';
 import { plainToClass } from 'class-transformer';
 import { emptyApiResponseDTO } from '../utils/emptyResult';
@@ -25,19 +23,7 @@ import { generateRefreshToken } from '../utils/tokenUtils';
 import { storeRefreshTokenInDatabase } from '../utils/tokenUtils';
 import { prisma } from '../../prisma/prismaClient';
 import { generateError } from '../utils/errorGenerator';
-
-export const userRegister = async (req: Request, res: Response) => {
-  // #swagger.tags = ['Users']
-  // #swagger.summary = '회원가입'
-  const { username, email, password } = req.body;
-
-  plainToClass(userValidateDTO, req.body);
-
-  // createUser 함수를 사용하여 새 사용자 생성
-  const user = await createUser(req.body);
-
-  return res.status(user.status).json(user);
-};
+import { IRequest } from '../types/request';
 
 export const userLogin = async (req: IRequest, res: Response) => {
   // #swagger.tags = ['Users']
@@ -59,8 +45,8 @@ export const userLogin = async (req: IRequest, res: Response) => {
   }
   // 사용자 정보와 토큰 데이터를 사용하여 user 객체 생성
   const user = {
-    token: req.token,
-    refreshToken: req.refreshTokens,
+    token: req.accessToken,
+    refreshToken: req.refreshToken,
     id: req.user.id,
     name: req.user.username,
     email: req.user.email,
@@ -119,7 +105,7 @@ export const getMyFriend = async (req: IRequest, res: Response) => {
   return res.status(allMyFriends.status).json(allMyFriends);
 };
 
-export const getUserId = async (req: IRequest, res: Response) => {
+export const getUser = async (req: IRequest, res: Response) => {
   /* #swagger.tags = ['Users']
          #swagger.security = [{
                "bearerAuth": []
@@ -127,12 +113,12 @@ export const getUserId = async (req: IRequest, res: Response) => {
      #swagger.summary = '특정 유저 정보'
         */
 
-  const userId = req.params.userId;
+  const { userId } = req.params;
 
   // getUserInfo 함수를 사용하여 특정 사용자의 정보 가져오기
-  const userInfo = await getUserInfo(userId);
+  const user = await getUserService(userId);
 
-  res.status(userInfo.status).json(userInfo);
+  res.status(200).json(user);
 };
 
 export const userLogout = async (req: IRequest, res: Response) => {
