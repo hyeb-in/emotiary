@@ -10,9 +10,25 @@ import { emailToken, sendEmail } from '../utils/email';
 import { emptyApiResponseDTO } from '../utils/emptyResult';
 import { getMyWholeFriends } from './friendService';
 import { prisma } from '../../prisma/prismaClient';
-import { getUserById } from '../repositories/userRepository';
+import { createUser, getUserById } from '../repositories/userRepository';
 import { generateError } from '../utils/errorGenerator';
+import { v4 as uuid } from 'uuid';
+export const signupUser = async (inputData: any) => {
+  const { username, password, email } = inputData;
+  //TODO req.body대신 validator사용하기
+  // 비밀번호를 해시하여 저장 (안전한 비밀번호 저장)
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const id = uuid();
 
+  const userInputData = { id, username, hashedPassword, email };
+  // 사용자 생성 및 저장
+  await createUser(userInputData);
+
+  // 사용자 가져오기
+  const user = getUserById(id);
+
+  return user;
+};
 export const myInfo = async (userId: string) => {
   // 사용자 ID를 기반으로 내 정보 조회
   const myInfo = await getUserById(userId);

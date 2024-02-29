@@ -18,6 +18,7 @@ import {
   searchKeyword,
   expire,
   getUser,
+  signup,
 } from '../controllers/userController';
 import { localAuthentication } from '../middlewares/authenticateLocal';
 import { jwtAuthentication } from '../middlewares/authenticateJwt';
@@ -26,6 +27,8 @@ import { wrapAsyncController } from '../utils/wrapper';
 import passport from 'passport';
 const userRouter = Router();
 
+//회원가입
+userRouter.post('/signup', signup);
 // 로그인
 userRouter.post('/login', localAuthentication, wrapAsyncController(userLogin));
 

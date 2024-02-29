@@ -14,6 +14,7 @@ import {
   verifyToken,
   registerUser,
   getUserService,
+  signupUser,
 } from '../services/userService';
 import { generateAccessToken, verifyRefreshToken } from '../utils/tokenUtils';
 import { userValidateDTO } from '../dtos/userDTO';
@@ -25,6 +26,13 @@ import { prisma } from '../../prisma/prismaClient';
 import { generateError } from '../utils/errorGenerator';
 import { IRequest } from '../types/request';
 
+export const signup = async (req: Request, res: Response) => {
+  //   plainToClass(userValidateDTO, req.body);
+  // createUser 함수를 사용하여 새 사용자 생성
+  const user = await signupUser(req.body);
+
+  return res.status(200).json(user);
+};
 export const userLogin = async (req: IRequest, res: Response) => {
   // #swagger.tags = ['Users']
   // #swagger.summary = '로그인'

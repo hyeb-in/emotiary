@@ -6,37 +6,7 @@ import { userResponseDTO } from '../dtos/userDTO';
 import { successApiResponseDTO } from '../utils/successResult';
 import { emailToken, sendEmail } from '../utils/email';
 import { emptyApiResponseDTO } from '../utils/emptyResult';
-import { sql } from '../db/mysqlConnection';
-import { v4 as uuid } from 'uuid';
 import { prisma } from '../../prisma/prismaClient';
-import { createUser, getUserById } from '../repositories/userRepository';
-
-export const signupUser = async (inputData: any) => {
-  const { username, password, email } = inputData;
-  //TODO req.body대신 validator사용하기
-  // 비밀번호를 해시하여 저장 (안전한 비밀번호 저장)
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const id = uuid();
-
-  const userInputData = { id, username, hashedPassword, email };
-  // 사용자 생성 및 저장
-  await createUser(userInputData);
-
-  // 사용자 가져오기
-  const user = getUserById(id);
-
-  return user;
-  // const user = await prisma.user.create({
-  //   data: { username, password: hashedPassword, email },
-  // });
-
-  // const UserResponseDTO = plainToClass(userResponseDTO, user, {
-  //   excludeExtraneousValues: true,
-  // });
-
-  // const response = successApiResponseDTO(UserResponseDTO);
-  // return response;
-};
 
 export const logout = async (userId: string) => {
   await prisma.refreshToken.deleteMany({
