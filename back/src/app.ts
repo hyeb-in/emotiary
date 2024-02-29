@@ -22,6 +22,7 @@ import { CronJob } from 'cron';
 import { updateAudioUrlsPeriodically } from './utils/music';
 import { localStrategy } from './config/passport/localStrategy';
 import { jwtStrategy } from './config/passport/jwtStrategy';
+import cookieParser = require('cookie-parser');
 
 const app: Express & { io?: any } = express();
 const server = http.createServer(app);
@@ -33,6 +34,7 @@ app.use(
   }),
 );
 
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(Logger);
 sendAlarm();
