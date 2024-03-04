@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import passport from 'passport';
 import { IRequest } from '../types/request';
 import { IUser } from '../types/user';
+import { generateError } from '../utils/errorGenerator';
 
 export const jwtAuthentication = async (
   req: IRequest,
@@ -17,17 +18,24 @@ export const jwtAuthentication = async (
           next(error);
         }
         if (info) {
-          //TODO token 처리 경우의 수 추가
-          if (info.name === 'TokenExpiredError') {
-            return res.status(401).json({ expired: true });
-          }
+          if (info.message == 'No auth token')
+            throw generateError(401, '토큰 없음');
+          if (info.message == 'jwt expired')
+            throw generateError(401, '토큰 만료');
+          if (
+            info.message == 'jwt malformed' ||
+            info.message == 'invalid signature'
+          )
+            throw generateError(401, '유효하지 않은 토큰');
+
+          throw generateError(401, info.message);
         }
+
         req.user = user;
         next();
       },
     )(req, res, next);
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
