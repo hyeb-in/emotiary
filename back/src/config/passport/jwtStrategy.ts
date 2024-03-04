@@ -1,5 +1,5 @@
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { JWT_SECRET_KEY } from '../../config/jwtSecret';
+import { ACCESS_SECRET_KEY } from '../../config/jwtSecret';
 import { UserRow, getUserById } from '../../repositories/userRepository';
 import passport from 'passport';
 
@@ -7,7 +7,7 @@ const jwtOptions = {
   // JWT를 추출하는 방법을 설정합니다. 여기서는 HTTP 요청 헤더의 Bearer 토큰을 추출합니다.
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   // JWT의 시크릿 키를 설정합니다. 이 시크릿 키는 JWT를 생성할 때 사용된 키와 일치해야 합니다.
-  secretOrKey: JWT_SECRET_KEY,
+  secretOrKey: ACCESS_SECRET_KEY,
 };
 
 const jwtCallback = async (payload: any, done: any) => {
