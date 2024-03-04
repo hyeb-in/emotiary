@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client';
 import { generateRandomPassword } from '../utils/password';
 import bcrypt from 'bcrypt';
 import { plainToClass } from 'class-transformer';
@@ -7,13 +6,22 @@ import { successApiResponseDTO } from '../utils/successResult';
 import { emailToken, sendEmail } from '../utils/email';
 import { emptyApiResponseDTO } from '../utils/emptyResult';
 import { prisma } from '../../prisma/prismaClient';
+import jwt, { Secret } from 'jsonwebtoken';
+import { deleteValue } from '../db/redisConnection';
+import { generateError } from '../utils/errorGenerator';
 
-export const logout = async (userId: string) => {
-  await prisma.refreshToken.deleteMany({
-    where: {
-      userId: userId,
-    },
-  });
+export const deleteToken = async (userId: string) => {
+  const result = await deleteValue(userId);
+
+  if (result === 0) throw generateError(500, '로그아웃 실패');
+};
+
+export const verifyToken = async (token: string, jwtSecret: Secret) => {
+  const { userId } = jwt.verify(token, jwtSecret) as jwt.JwtPayload & {
+    userId: string;
+  };
+
+  return userId;
 };
 
 export const forgotUserPassword = async (email: string) => {
@@ -106,31 +114,31 @@ export const emailLinked = async (email: string) => {
   );
 };
 
-export const verifyToken = async (token: string) => {
-  const user = await prisma.user.findFirst({
-    where: {
-      verificationToken: token,
-      verificationTokenExpires: {
-        gte: new Date(),
-      },
-    },
-  });
+// export const verifyToken = async (token: string) => {
+//   const user = await prisma.user.findFirst({
+//     where: {
+//       verificationToken: token,
+//       verificationTokenExpires: {
+//         gte: new Date(),
+//       },
+//     },
+//   });
 
-  if (!user) {
-    throw { message: '토큰이 유효하지 않습니다.' };
-  }
+//   if (!user) {
+//     throw { message: '토큰이 유효하지 않습니다.' };
+//   }
 
-  await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data: {
-      isVerified: true,
-      verificationToken: null,
-      verificationTokenExpires: null,
-    },
-  });
-};
+//   await prisma.user.update({
+//     where: {
+//       id: user.id,
+//     },
+//     data: {
+//       isVerified: true,
+//       verificationToken: null,
+//       verificationTokenExpires: null,
+//     },
+//   });
+// };
 
 export const registerUser = async (
   email: string,
