@@ -12,25 +12,17 @@ import {
   resetPassword,
   refresh,
   loginCallback,
-  userLogout,
   emailLink,
   testEmail,
   searchKeyword,
   expire,
   getUser,
-  signup,
 } from '../controllers/userController';
-import { localAuthentication } from '../middlewares/authenticateLocal';
 import { jwtAuthentication } from '../middlewares/authenticateJwt';
 import { fileUpload } from '../middlewares/uploadMiddleware';
-import { wrapAsyncController } from '../utils/wrapper';
-import passport from 'passport';
-const userRouter = Router();
+import { wrapAsyncController, wrapTryCatch } from '../utils/wrapper';
 
-//회원가입
-userRouter.post('/signup', signup);
-// 로그인
-userRouter.post('/login', localAuthentication, wrapAsyncController(userLogin));
+const userRouter = Router();
 
 // 이메일 인증후 회원가입
 userRouter.post('/testregister', wrapAsyncController(testEmail));
@@ -63,9 +55,6 @@ userRouter.get(
   wrapAsyncController(getMyFriend),
 );
 
-// 로그아웃
-userRouter.get('/logout', jwtAuthentication, wrapAsyncController(userLogout));
-
 // 토큰 만료 여부 체크
 userRouter.get('/tokenExpire', jwtAuthentication, wrapAsyncController(expire));
 
@@ -85,9 +74,6 @@ userRouter.post(
   jwtAuthentication,
   wrapAsyncController(resetPassword),
 );
-
-// refresh token사용
-userRouter.post('/refresh-token', wrapAsyncController(refresh));
 
 // 소셜 로그인
 // userRouter.get(

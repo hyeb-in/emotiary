@@ -1,16 +1,12 @@
 import passport from 'passport';
 import { Response, NextFunction } from 'express';
 import { IUser } from '../types/user';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  publishToken,
-  storeRefreshTokenInDatabase,
-} from '../utils/tokenUtils';
+
 import { IRequest } from '../types/request';
 import { generateError } from '../utils/errorGenerator';
+import { publishToken } from '../services/authService';
 
-export const localAuthentication = (
+export const localAuthentication = async (
   req: IRequest,
   res: Response,
   next: NextFunction,
@@ -30,28 +26,12 @@ export const localAuthentication = (
           next(err);
         }
 
-        if (user) {
-          const { accessToken, refreshToken } = await publishToken(user);
-          req.accessToken = accessToken;
-          req.user = user;
-          req.refreshToken = refreshToken;
+        const { accessToken, refreshToken } = await publishToken(user);
 
-          //   const { token, expiresAt } = generateAccessToken(user);
-          //   const reh freshToken = generateRefreshToken(user);
-          //   await storeRefreshTokenInDatabase(user.id, refreshToken);
+        req.user = user;
+        req.accessToken = accessToken;
+        req.refreshToken = refreshToken;
 
-          //   req.token = token;
-          //   req.user = user;
-          //   req.refreshTokens = [refreshToken];
-          //   req.expiresAt = expiresAt;
-          //   const response = {
-          //     accessToken: token,
-          //     refreshToken,
-          //     user,
-          //   };
-          //   res.status(200).json(response);
-          // }
-        }
         next();
       },
     )(req, res, next);

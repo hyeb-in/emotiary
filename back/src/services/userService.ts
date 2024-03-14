@@ -10,9 +10,21 @@ import { emailToken, sendEmail } from '../utils/email';
 import { emptyApiResponseDTO } from '../utils/emptyResult';
 import { getMyWholeFriends } from './friendService';
 import { prisma } from '../../prisma/prismaClient';
-import { createUser, getUserById } from '../repositories/userRepository';
+import {
+  UserRow,
+  createUser,
+  getTempUser,
+  getUserByEmail,
+  getUserById,
+} from '../repositories/userRepository';
 import { generateError } from '../utils/errorGenerator';
 import { v4 as uuid } from 'uuid';
+import { generateRandomNumber } from '../utils/randomNum';
+import { getValue, setValue } from '../db/redisConnection';
+import { processInputData } from '../utils/processSql';
+
+export const updateUserServiceTest = async (inputData: Partial<UserRow>) => {};
+
 export const signupUser = async (inputData: any) => {
   const { username, password, email } = inputData;
   //TODO req.body대신 validator사용하기
@@ -21,14 +33,130 @@ export const signupUser = async (inputData: any) => {
   const id = uuid();
 
   const userInputData = { id, username, hashedPassword, email };
+
+  const { placeholders, processedQuery, values } =
+    processInputData(userInputData);
   // 사용자 생성 및 저장
-  await createUser(userInputData);
+  await createUser(placeholders, processedQuery, values);
 
   // 사용자 가져오기
   const user = getUserById(id);
 
   return user;
 };
+
+export const getUserByEmailService = async (email: string) => {
+  const user = await getUserByEmail(email);
+
+  return user;
+};
+
+export const getTempUserByEmailService = async (email: string) => {
+  const user = getTempUser(email);
+
+  return user;
+};
+
+//-------------------------------------------------------------------------------
+
+export const updateUserService = async (
+  userId: string,
+  inputData: Prisma.UserUpdateInput,
+) => {
+  if (inputData.password) {
+    delete inputData.password; // 비밀번호는 여기서 업데이트하지 않음
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: inputData,
+    include: {
+      profileImage: {
+        select: {
+          url: true, // url 필드만 선택
+        },
+      },
+    },
+  });
+  const UserResponseDTO = plainToClass(userResponseDTO, updatedUser, {
+    excludeExtraneousValues: true,
+  });
+  const response = successApiResponseDTO(UserResponseDTO);
+  return response;
+};
+
+export const emailLinked = async (email: string) => {
+  const user = await prisma.user.create({
+    data: {
+      email,
+      isVerified: false,
+    },
+  });
+
+  const result = emailToken();
+
+  await prisma.user.update({
+    where: {
+      id: user.id,
+    },
+    data: {
+      verificationToken: result.token,
+      verificationTokenExpires: result.expires,
+    },
+  });
+
+  let baseUrl;
+  if (process.env.NODE_ENV === 'development') {
+    baseUrl = 'http://localhost:5001';
+  } else {
+    baseUrl = 'https://kdt-ai-8-team02.elicecoding.com';
+  }
+  const verifyUrl = `${baseUrl}/api/users/verifyEmail/${result.token}`;
+
+  await sendEmail(
+    email,
+    '이메일 인증',
+    '',
+    `<p>눌러 주세요</p>
+        <p><a href = "${verifyUrl}">Verify Email</a></p>
+        <p>${result.expires}</p>`,
+  );
+};
+
+export const registerUser = async (
+  email: string,
+  username: string,
+  password: string,
+) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user || !user.isVerified) {
+    throw { message: '이메일 인증이 필요합니다.' };
+  }
+
+  // 비밀번호를 해시하여 저장 (안전한 비밀번호 저장)
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      username,
+      password: hashedPassword,
+    },
+  });
+
+  const UserResponseDTO = plainToClass(userResponseDTO, user, {
+    excludeExtraneousValues: true,
+  });
+
+  const response = successApiResponseDTO(UserResponseDTO);
+  return response;
+};
+
 export const myInfo = async (userId: string) => {
   // 사용자 ID를 기반으로 내 정보 조회
   const myInfo = await getUserById(userId);
@@ -170,42 +298,6 @@ export const getUserService = async (userId: string) => {
   //TODO response 규정 맞추기
   // const response = successApiResponseDTO(userInfo);
   // return response;
-};
-
-export const logout = async (userId: string) => {
-  await prisma.refreshToken.deleteMany({
-    where: {
-      userId: userId,
-    },
-  });
-};
-
-export const updateUserService = async (
-  userId: string,
-  inputData: Prisma.UserUpdateInput,
-) => {
-  if (inputData.password) {
-    delete inputData.password; // 비밀번호는 여기서 업데이트하지 않음
-  }
-
-  const updatedUser = await prisma.user.update({
-    where: {
-      id: userId,
-    },
-    data: inputData,
-    include: {
-      profileImage: {
-        select: {
-          url: true, // url 필드만 선택
-        },
-      },
-    },
-  });
-  const UserResponseDTO = plainToClass(userResponseDTO, updatedUser, {
-    excludeExtraneousValues: true,
-  });
-  const response = successApiResponseDTO(UserResponseDTO);
-  return response;
 };
 
 export const deleteUserService = async (userId: string) => {
@@ -368,101 +460,5 @@ export const getUsers = async (
     '성공',
   );
 
-  return response;
-};
-
-export const emailLinked = async (email: string) => {
-  const user = await prisma.user.create({
-    data: {
-      email,
-      isVerified: false,
-    },
-  });
-
-  const result = emailToken();
-
-  await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data: {
-      verificationToken: result.token,
-      verificationTokenExpires: result.expires,
-    },
-  });
-
-  let baseUrl;
-  if (process.env.NODE_ENV === 'development') {
-    baseUrl = 'http://localhost:5001';
-  } else {
-    baseUrl = 'https://kdt-ai-8-team02.elicecoding.com';
-  }
-  const verifyUrl = `${baseUrl}/api/users/verifyEmail/${result.token}`;
-
-  await sendEmail(
-    email,
-    '이메일 인증',
-    '',
-    `<p>눌러 주세요</p>
-        <p><a href = "${verifyUrl}">Verify Email</a></p>
-        <p>${result.expires}</p>`,
-  );
-};
-
-export const verifyToken = async (token: string) => {
-  const user = await prisma.user.findFirst({
-    where: {
-      verificationToken: token,
-      verificationTokenExpires: {
-        gte: new Date(),
-      },
-    },
-  });
-
-  if (!user) {
-    throw { message: '토큰이 유효하지 않습니다.' };
-  }
-
-  await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data: {
-      isVerified: true,
-      verificationToken: null,
-      verificationTokenExpires: null,
-    },
-  });
-};
-
-export const registerUser = async (
-  email: string,
-  username: string,
-  password: string,
-) => {
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (!user || !user.isVerified) {
-    throw { message: '이메일 인증이 필요합니다.' };
-  }
-
-  // 비밀번호를 해시하여 저장 (안전한 비밀번호 저장)
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      username,
-      password: hashedPassword,
-    },
-  });
-
-  const UserResponseDTO = plainToClass(userResponseDTO, user, {
-    excludeExtraneousValues: true,
-  });
-
-  const response = successApiResponseDTO(UserResponseDTO);
   return response;
 };
