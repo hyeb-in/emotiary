@@ -16,8 +16,6 @@ import { Logger } from './config/logger';
 import { errorMiddleware } from './middlewares/errorMiddleware';
 import { sendAlarm } from './utils/alarm';
 import http from 'http';
-import { chat } from './utils/chat';
-import { Server as SocketIoServer } from 'socket.io';
 import { CronJob } from 'cron';
 import { updateAudioUrlsPeriodically } from './utils/music';
 import { localStrategy } from './config/passport/localStrategy';
@@ -82,16 +80,5 @@ app.use('/api', apiRouter);
 
 app.use('/api/fileUpload', express.static('fileUpload'));
 app.use(errorMiddleware);
-
-const io = new SocketIoServer(server, {
-  path: '/chat',
-  cors: {
-    origin: 'https://kdt-ai-8-team02.elicecoding.com',
-    methods: ['GET', 'POST', 'WEBSOCKET'],
-    credentials: true,
-  },
-});
-chat(io);
-app.io = io;
 
 export { app };
